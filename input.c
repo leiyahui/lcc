@@ -1,4 +1,5 @@
 #include "lcc.h"
+
 void loadfile(char* file_name, input_file* file)
 {
 	HANDLE handle_file, handle_file_mapping;
@@ -20,6 +21,8 @@ void loadfile(char* file_name, input_file* file)
 	}
 
 	file->file_name = file_name;
+	file->line = 1;
+	file->cursor[file->size] = END_OF_FILE;
 }
 
 void unloadfile(input_file* file)
@@ -29,4 +32,23 @@ void unloadfile(input_file* file)
 	SetFilePointer(file->h_file, file->size, NULL, FILE_BEGIN);
 	SetEndOfFile(file->h_file);
 	CloseHandle(file->h_file);
+}
+
+unsigned char* get_next_line(input_file* file)
+{
+	while (*(file->base) != '\n' && *(file->base) != END_OF_FILE) {
+		file->base++;
+	}
+
+	if (*(file->base) != END_OF_FILE) {
+		file->line++;
+		file->base++;
+	}
+	return file->base;
+}
+
+unsigned char* get_next_char(input_file* file)
+{
+	file->base++;
+	return file->base;
 }

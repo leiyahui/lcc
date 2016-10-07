@@ -44,7 +44,6 @@ void free_nfa_state(nfa_state* state)
 	}
 
 	if (state->is_acc_stat) {
-		l_free(state->acc_token->token);
 		l_free(state->acc_token);
 	}
 	l_free(one_letter);
@@ -55,10 +54,8 @@ void free_one_letter(nfa_state_one_letter* letter)
 	l_free(letter->next_state);
 }
 
-void add_accepting_token(nfa_state* state, char* token, int length) {
+void add_accepting_token(nfa_state* state, int token) {
 	state->is_acc_stat =1;
 	state->acc_token = (accept_toekn*)l_calloc(sizeof(accept_toekn));
-	state->acc_token->token= (char*)l_calloc(length + 1);
-	l_strncpy(state->acc_token->token, token, length);
-	state->acc_token->token[length + 1] = '\0';
+	state->acc_token->token = token;
 }

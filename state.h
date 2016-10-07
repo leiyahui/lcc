@@ -3,6 +3,11 @@
 
 #define DEFAULT_LETTER_NEXT_STATE	5
 #define DEFAULT_LETTER_COUNT		5
+
+typedef struct _accept_token {
+	int token;
+}accept_toekn;
+
 typedef struct _nfa_state_one_letter {		//the same letter may have more than one destination state
 	char letter;
 	int state_num;
@@ -11,7 +16,8 @@ typedef struct _nfa_state_one_letter {		//the same letter may have more than one
 
 typedef struct _nfa_state {			//one state's next letter may be various
 	int letter_num;
-	int is_acc_stat;
+	int is_acc_stat;				//is accepting state
+	accept_toekn* acc_token;		//accepting state have token
 	nfa_state_one_letter* letter;
 }nfa_state;
 
@@ -25,4 +31,5 @@ void free_nfa_state(nfa_state* state);
 
 void free_one_letter(nfa_state_one_letter* letter);
 
+void add_accepting_token(nfa_state* state, int token);
 #endif
