@@ -40,10 +40,12 @@ unsigned char* get_next_line(input_file* file)
 		file->base++;
 	}
 
-	if (*(file->base) != END_OF_FILE) {
-		file->line++;
-		file->base++;
+	if (*(file->base) == END_OF_FILE) {
+		return NULL;
 	}
+
+	file->line++;
+	file->base++;
 	return file->base;
 }
 

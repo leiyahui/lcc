@@ -73,3 +73,18 @@ void oa_change_file_size(int fd) {
 	_lseek(fd, 0, SEEK_SET);
 #endif
 }
+
+BOOL is_digit(unsigned char character)
+{
+	if (character >= 48 && character <= 57) {
+		return TRUE;
+	}
+	return FALSE;
+}
+BOOL is_letter(unsigned char character)
+{
+	if (character >= 65 && character <= 90 || character >= 97 || character <= 122) {
+		return TRUE;
+	}
+	return FALSE;
+}
