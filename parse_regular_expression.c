@@ -1,4 +1,7 @@
 #include "lcc.h"
+
+#define MAX_POST_FIX_EXPR_LEN 50
+
 nfa_state nfa;
 
 static int get_token(unsigned char* current_cursor)
@@ -24,58 +27,110 @@ static int get_regular_expression(unsigned char* current_cursor, unsigned char**
 	return length;
 }
 
-
-
-void change_atom_count_and_in_stack(int* atom_count, char** stack_head)
+static BOOL op_precede_cmp(char* op1, char* op2)
 {
-	*atom_count++;
-	if (*atom_count > 1) {
-		**stack_head = '.';
-		(*stack_head)++;
-		*atom_count--;
+	if (*op1 == *op2 || *op1 == '.' && *op2 == '|') {
+		return TRUE;
+	}
+	return FALSE;
+}
+
+void retrieve_low_precedence_letter(char** stack_head, unsigned char** postfix_expr, char* op)
+{
+	if (*op == '(') {
+		**stack_head = *op;
+		*stack_head++;
+		return;
+	} else if (*op == ')') {
+		*stack_head--;
+		while (**stack_head != '(') {
+			**postfix_expr = **stack_head;
+			*postfix_expr++;
+			*stack_head--;
+		}
+	} else {
+		*stack_head--;
+		while (op_precede_cmp(*stack_head, op)) {
+			**postfix_expr = **stack_head;
+			*postfix_expr++;
+			*stack_head--;
+		}
+		*stack_head++;
 	}
 }
 
-/* 
-'.' means concatation, 
+int add_atom_to_infix_expr(char* infix_expr_with_atom, char* infix_expr, int length)
+{
+	char letter_l, letter_r, *work_infix_expr_with_atom, *work_infix_expr;
+	int i, len_with_atom;
+
+	work_infix_expr = infix_expr;
+	work_infix_expr_with_atom = infix_expr_with_atom;
+	len_with_atom = 0;
+
+	for (i = 0; i < length; i++) {
+		letter_l = *work_infix_expr;
+		letter_r = *(work_infix_expr++);
+
+		if (letter_l == '|' || letter_l == '*' || letter_l == '?' || letter_r == '|'
+			 || letter_r == '*' || letter_r == '?' || letter_l == '(' || letter_r == ')') {
+			*work_infix_expr_with_atom = *work_infix_expr;
+			work_infix_expr_with_atom++;
+			len_with_atom++;
+		} else {
+			*work_infix_expr_with_atom = *work_infix_expr;
+			work_infix_expr_with_atom++;
+			*work_infix_expr_with_atom = '.';
+			work_infix_expr_with_atom++;
+			len_with_atom += 2;
+		}
+
+		work_infix_expr++;
+
+	}
+	return len_with_atom;
+}
+
+/*
+'.' means concatation,
 
 1  between two letter should have one '.'
 2  before '(' should have one '.'
 3  after ')' should have one '.'
 */
 
-static void trans_infix_to_postfix_expression(unsigned char* postfix_expr, unsigned char* infix_expr, int len)
+static int trans_infix_to_postfix_expression(unsigned char* postfix_expr, unsigned char* infix_expr, int len)
 {
-	char op_stack[20], *op_top;
-	int i, j, atom_count;
+	char* stack, *infix_expr_with_atom, *work_postfix_expr;
+	int i, len_with_atom;
 
-	op_top = op_stack;
-	i = j = atom_count = 0;
-	for (; i < len; i++) {
-		if (is_letter(infix_expr[i]) == TRUE) {
-			postfix_expr[j] = infix_expr[i];
-			j++;
+	stack = (char*)l_malloc(len * 2);
+	work_postfix_expr = postfix_expr;
 
-			change_atom_count_and_in_stack(&atom_count, &op_top);
-		} else if (infix_expr[i] == '(') {
-			change_atom_count_and_in_stack(&atom_count, &op_top);
+	infix_expr_with_atom = (char*)l_malloc(len * 2);
+	len_with_atom = add_atom_to_infix_expr(infix_expr_with_atom, infix_expr, len);
 
-			*op_top = '(';
-			op_top++;
-		} else if (infix_expr[i] == ')') {
-
-			for (op_top--; *op_top != '('; op_top--) {
-				postfix_expr[j] = *op_top;
-				j++;
-			}
-
-			change_atom_count_and_in_stack(&atom_count, &op_top);
-		} else if (infix_expr[i] == '*' || infix_expr[i] == '?') {
-			postfix_expr[j] = infix_expr[i];
+	for (i = 0; i < len_with_atom; i++) {
+		if (is_letter(*infix_expr_with_atom)) {
+			*postfix_expr = *infix_expr_with_atom;
+			postfix_expr++;
+		} else if (*infix_expr_with_atom == '(') {
+			*stack = '(';
+			stack++;
+		} else if (*infix_expr_with_atom == '*' || *infix_expr_with_atom == '?') {
+			*postfix_expr = *infix_expr_with_atom;
+			postfix_expr++;
 		} else {
-
+			retrieve_low_precedence_letter(&stack, &postfix_expr, infix_expr_with_atom);
 		}
+
+		infix_expr_with_atom++;
 	}
+
+	l_free(stack);
+	l_free(infix_expr_with_atom);
+
+	return len_with_atom;
 }
 
 void parse_one_regular_expression(int token, unsigned char* regular_expression, int length)
@@ -98,12 +153,16 @@ void parse_regular_expression(input_file* file)
 	int token, length;
 	unsigned char* postfix_expr;			//need to malloc memory
 	unsigned char* regular_expression;
+
+	postfix_expr = (unsigned char*)l_malloc(MAX_POST_FIX_EXPR_LEN);
+
 	do {
 		token = get_token(file->cursor);
 		file->cursor++;
 		length = get_regular_expression(file->cursor, &regular_expression);
 
 		trans_infix_to_postfix_expression(postfix_expr, regular_expression, length);
-		parse_one_regular_expression(token, regular_expression, length);
+
+		parse_one_regular_expression(token, postfix_expr, length);
 	} while(get_next_line(file) != NULL);
 }
