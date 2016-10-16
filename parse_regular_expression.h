@@ -2,7 +2,6 @@
 #define _PARSE_REGULAR_EXPRESSION_H
 #include "lcc.h"
 
-extern nfa_state nfa;
 
 void parse_regular_expression(input_file* file);
 

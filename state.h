@@ -34,7 +34,7 @@
 //void add_accepting_token(nfa_state* state, int token);
 
 #define CLOSURE 256
-
+#define FRAGE_STACK_LEN 10
 
 typedef struct _state {
 	char letter;
@@ -47,16 +47,21 @@ typedef struct _frage {		//one frag contains servel state, it's operand of opert
 	state* out;
 }frage;
 
+typedef struct _frage_stack {
+	frage frage_list[FRAGE_STACK_LEN];
+	int len;
+}frage_stack;
 
+void in_stack(frage_stack* stack, frage* in_frage_item);
+void out_stack(frage_stack* stack, frage* out_frage_item);
+	
 state* create_state(char* letter, state* out1, state* out2);
 void destory_state(state* state_destroy);
 
-frage* create_frage(state* start, state* out);
-void destroy_frage(frage* start);
-
-frage* concate_frage(frage* front_frage, frage* rear_frage);
-frage* union_frage(frage* frage1, frage* frage2);
-frage* star_frage(frage* frage_star);
+void create_frage(frage_stack* stack, char letter);
+void concate_frage(frage_stack* stack);
+void union_frage(frage_stack* stack);
+void star_frage(frage_stack* stack);
 
 
 #endif

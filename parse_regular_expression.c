@@ -2,7 +2,6 @@
 
 #define MAX_POST_FIX_EXPR_LEN 50
 
-nfa_state nfa;
 
 static int get_token(unsigned char* current_cursor)
 {
@@ -27,7 +26,7 @@ static int get_regular_expression(unsigned char* current_cursor, unsigned char**
 	return length;
 }
 
-static BOOL op_precede_cmp(char* op1, char* op2)
+static BOOL op_precede_cmp(unsigned char* op1, unsigned char* op2)
 {
 	if (*op1 == *op2 || *op1 == '.' && *op2 == '|') {
 		return TRUE;
@@ -35,7 +34,7 @@ static BOOL op_precede_cmp(char* op1, char* op2)
 	return FALSE;
 }
 
-void retrieve_low_precedence_letter(char** stack_head, unsigned char** postfix_expr, char* op)
+void retrieve_low_precedence_letter(unsigned char** stack_head, unsigned char** postfix_expr, unsigned char* op)
 {
 	if (*op == '(') {
 		**stack_head = *op;
@@ -59,9 +58,9 @@ void retrieve_low_precedence_letter(char** stack_head, unsigned char** postfix_e
 	}
 }
 
-int add_atom_to_infix_expr(char* infix_expr_with_atom, char* infix_expr, int length)
+int add_atom_to_infix_expr(unsigned char* infix_expr_with_atom, unsigned char* infix_expr, int length)
 {
-	char letter_l, letter_r, *work_infix_expr_with_atom, *work_infix_expr;
+	unsigned char letter_l, letter_r, *work_infix_expr_with_atom, *work_infix_expr;
 	int i, len_with_atom;
 
 	work_infix_expr = infix_expr;
@@ -101,13 +100,13 @@ int add_atom_to_infix_expr(char* infix_expr_with_atom, char* infix_expr, int len
 
 static int trans_infix_to_postfix_expression(unsigned char* postfix_expr, unsigned char* infix_expr, int len)
 {
-	char* stack, *infix_expr_with_atom, *work_postfix_expr;
+	unsigned char* stack, *infix_expr_with_atom, *work_postfix_expr;
 	int i, len_with_atom;
 
-	stack = (char*)l_malloc(len * 2);
+	stack = (unsigned char*)l_malloc(len * 2);
 	work_postfix_expr = postfix_expr;
 
-	infix_expr_with_atom = (char*)l_malloc(len * 2);
+	infix_expr_with_atom = (unsigned char*)l_malloc(len * 2);
 	len_with_atom = add_atom_to_infix_expr(infix_expr_with_atom, infix_expr, len);
 
 	for (i = 0; i < len_with_atom; i++) {
@@ -133,19 +132,25 @@ static int trans_infix_to_postfix_expression(unsigned char* postfix_expr, unsign
 	return len_with_atom;
 }
 
-void parse_one_regular_expression(int token, unsigned char* regular_expression, int length)
+void parse_one_postfix_regular_expression(int token, unsigned char* regular_expression, int length)
 {
 	int i;
-	nfa_state* from_state, *to_state;
-
-	from_state = &nfa;
+	char letter;
+	frage_stack stack;
 	for (i = 0; i < length; i++) {
-		to_state = (nfa_state*)l_malloc(sizeof(nfa_state));
-		init_nfa_state(to_state);
-		add_next_state(from_state, to_state, regular_expression[i]);
-		from_state = to_state;
+		letter = regular_expression[i];
+
+		switch (letter) {
+		case '.':
+			concate_frage(&stack);
+		case '|':
+			union_frage(&stack);
+		case '*':
+			star_frage(&stack);
+		default:
+			create_frage(&stack, letter);
+		}
 	}
-	add_accepting_token(from_state, token);
 }
 
 void parse_regular_expression(input_file* file)
@@ -163,6 +168,6 @@ void parse_regular_expression(input_file* file)
 
 		trans_infix_to_postfix_expression(postfix_expr, regular_expression, length);
 
-		parse_one_regular_expression(token, postfix_expr, length);
+		parse_one_postfix_regular_expression(token, postfix_expr, length);
 	} while(get_next_line(file) != NULL);
 }
