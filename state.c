@@ -77,7 +77,7 @@ void in_stack(frage_stack* stack, frage* in_frage_item)
 void out_stack(frage_stack* stack, frage* out_frage_item)
 {
 	int len = stack->len;
-	
+
 	out_frage_item->start = stack->frage_list[len].start;
 	out_frage_item->out = stack->frage_list[len].out;
 	stack->len--;
@@ -154,7 +154,7 @@ void star_frage(frage_stack* stack)
 	start = create_state(CLOSURE, frage_star.start, out);
 	(frage_star.out)->out1 = out;
 	(frage_star.out)->out2 = start;
-	
+
 	frage_star.start = start;
 	frage_star.out = out;
 

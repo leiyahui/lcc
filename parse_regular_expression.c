@@ -69,7 +69,7 @@ int add_atom_to_infix_expr(unsigned char* infix_expr_with_atom, unsigned char* i
 
 	for (i = 0; i < length; i++) {
 		letter_l = *work_infix_expr;
-		letter_r = *(work_infix_expr++);
+		letter_r = *(work_infix_expr + 1);
 
 		if (letter_l == '|' || letter_l == '*' || letter_l == '?' || letter_r == '|'
 			 || letter_r == '*' || letter_r == '?' || letter_l == '(' || letter_r == ')') {
@@ -87,6 +87,8 @@ int add_atom_to_infix_expr(unsigned char* infix_expr_with_atom, unsigned char* i
 		work_infix_expr++;
 
 	}
+	infix_expr_with_atom[len_with_atom] = '\0';
+
 	return len_with_atom;
 }
 
@@ -108,28 +110,39 @@ static int trans_infix_to_postfix_expression(unsigned char* postfix_expr, unsign
 
 	infix_expr_with_atom = (unsigned char*)l_malloc(len * 2);
 	len_with_atom = add_atom_to_infix_expr(infix_expr_with_atom, infix_expr, len);
+	log_debug("expression with atom %s\n", infix_expr_with_atom);
 
 	for (i = 0; i < len_with_atom; i++) {
 		if (is_letter(*infix_expr_with_atom)) {
-			*postfix_expr = *infix_expr_with_atom;
-			postfix_expr++;
+			*work_postfix_expr = *infix_expr_with_atom;
+			work_postfix_expr++;
 		} else if (*infix_expr_with_atom == '(') {
 			*stack = '(';
 			stack++;
 		} else if (*infix_expr_with_atom == '*' || *infix_expr_with_atom == '?') {
-			*postfix_expr = *infix_expr_with_atom;
-			postfix_expr++;
+			*work_postfix_expr = *infix_expr_with_atom;
+			work_postfix_expr++;
 		} else {
-			retrieve_low_precedence_letter(&stack, &postfix_expr, infix_expr_with_atom);
+			retrieve_low_precedence_letter(&stack, &work_postfix_expr, infix_expr_with_atom);
 		}
 
 		infix_expr_with_atom++;
 	}
+	log_debug("post fix expression %s\n", postfix_expr);
 
 	l_free(stack);
 	l_free(infix_expr_with_atom);
 
 	return len_with_atom;
+}
+
+void main()
+{
+	char* infix_expression = "abc(a|b)d*";
+	char* pos_fix_expression = (char*)l_malloc(30);
+	init_logfile_fd(5);
+	trans_infix_to_postfix_expression(pos_fix_expression, infix_expression, 10);
+	printf("postfix expression is: %s\n", pos_fix_expression);
 }
 
 void parse_one_postfix_regular_expression(int token, unsigned char* regular_expression, int length)
@@ -171,3 +184,4 @@ void parse_regular_expression(input_file* file)
 		parse_one_postfix_regular_expression(token, postfix_expr, length);
 	} while(get_next_line(file) != NULL);
 }
+

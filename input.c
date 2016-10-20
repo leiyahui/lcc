@@ -14,7 +14,7 @@ void loadfile(char* file_name, input_file* file)
 		log_error("create file mapping fail\n");
 	}
 	file->h_filemapping = handle_file_mapping;
-	 
+
 	file->base = (unsigned char*)MapViewOfFile(handle_file_mapping, FILE_MAP_WRITE, 0, 0, 0);
 	if (file->base == NULL) {
 		log_error("map file fail\n");

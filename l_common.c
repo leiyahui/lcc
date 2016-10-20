@@ -31,7 +31,7 @@ unsigned char oa_str_case_equal(const char *str1, const char *str2) {
 	if (str1 == NULL || str2 == NULL) {
 		return 0;
 	}
-	if (stricmp(str1, str2) == 0) {
+	if (_stricmp(str1, str2) == 0) {
 		return 1;
 	}
 	return 0;
@@ -83,7 +83,7 @@ BOOL is_digit(unsigned char character)
 }
 BOOL is_letter(unsigned char character)
 {
-	if (character >= 65 && character <= 90 || character >= 97 || character <= 122) {
+	if (character >= 65 && character <= 90 || character >= 97 && character <= 122) {
 		return TRUE;
 	}
 	return FALSE;
