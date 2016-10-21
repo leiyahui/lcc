@@ -2,6 +2,44 @@
 
 #define MAX_POST_FIX_EXPR_LEN 50
 
+void init_expr_stack(operator_stack* stack)
+{
+	memset(stack->operator, 0, MAX_OPERATOR_NUM);
+	stack->num = 0;
+}
+
+BOOL is_empty_oper_stack(operator_stack* stack)
+{
+	if (stack->num == 0) {
+		return TRUE;
+	}
+	return FALSE;
+}
+
+BOOL is_full_oper_stack(operator_stack* stack)
+{
+	if (stack->num == MAX_OPERATOR_NUM) {
+		return TRUE;
+	}
+	return FALSE;
+}
+
+void in_oper_stack(operator_stack* stack, char op)
+{
+	stack->operator[stack->num] = op;
+	stack->num++;
+}
+
+char out_oper_stack(operator_stack* stack)
+{
+	stack->num--;
+	return stack->operator[stack->num];
+}
+
+char get_oper_stack(operator_stack* stack)
+{
+	return stack->operator[stack->num - 1];
+}
 
 static int get_token(unsigned char* current_cursor)
 {
@@ -26,35 +64,44 @@ static int get_regular_expression(unsigned char* current_cursor, unsigned char**
 	return length;
 }
 
-static BOOL op_precede_cmp(unsigned char* op1, unsigned char* op2)
+static BOOL op_precede_cmp(unsigned char op1, unsigned char op2)
 {
-	if (*op1 == *op2 || *op1 == '.' && *op2 == '|') {
+	if (op1 == op2 || op1 == '.' && op2 == '|') {
 		return TRUE;
 	}
 	return FALSE;
 }
 
-void retrieve_low_precedence_letter(unsigned char** stack_head, unsigned char** postfix_expr, unsigned char* op)
+void retrieve_low_precedence_letter(operator_stack* stack,  unsigned char** postfix_expr, unsigned char* op)
 {
-	if (*op == '(') {
-		**stack_head = *op;
-		*stack_head++;
-		return;
-	} else if (*op == ')') {
-		*stack_head--;
-		while (**stack_head != '(') {
-			**postfix_expr = **stack_head;
+	char operator;
+	if (*op == ')') {
+		operator = out_oper_stack(stack);
+		while (operator != '(') {
+			**postfix_expr = operator;
 			*postfix_expr++;
-			*stack_head--;
+			operator = out_oper_stack(stack);
 		}
 	} else {
-		*stack_head--;
-		while (op_precede_cmp(*stack_head, op)) {
-			**postfix_expr = **stack_head;
-			*postfix_expr++;
-			*stack_head--;
+		if (!is_empty_oper_stack(stack)) {
+			operator = get_oper_stack(stack);
+
+			while (op_precede_cmp(operator, *op)) {
+				out_oper_stack(stack);
+				**postfix_expr = operator;
+				*postfix_expr++;
+				if (!is_empty_oper_stack(stack)) {
+					operator = get_oper_stack(stack);
+				} else {
+					break;
+				}
+			}
 		}
-		*stack_head++;
+		in_oper_stack(stack, *op);
+		for (int j = 0; j < stack->num; j++) {
+			log_debug("%c, ", stack->operator[j]);
+		}
+		log_debug("\n");
 	}
 }
 
@@ -102,13 +149,14 @@ int add_atom_to_infix_expr(unsigned char* infix_expr_with_atom, unsigned char* i
 
 static int trans_infix_to_postfix_expression(unsigned char* postfix_expr, unsigned char* infix_expr, int len)
 {
-	unsigned char* stack, *infix_expr_with_atom, *work_postfix_expr;
+	operator_stack stack;
+	unsigned char *head_infix_expr_with_atom, *infix_expr_with_atom, *work_postfix_expr;
 	int i, len_with_atom;
 
-	stack = (unsigned char*)l_malloc(len * 2);
+	init_expr_stack(&stack);
 	work_postfix_expr = postfix_expr;
 
-	infix_expr_with_atom = (unsigned char*)l_malloc(len * 2);
+	head_infix_expr_with_atom = infix_expr_with_atom = (unsigned char*)l_malloc(len * 2);
 	len_with_atom = add_atom_to_infix_expr(infix_expr_with_atom, infix_expr, len);
 	log_debug("expression with atom %s\n", infix_expr_with_atom);
 
@@ -117,8 +165,12 @@ static int trans_infix_to_postfix_expression(unsigned char* postfix_expr, unsign
 			*work_postfix_expr = *infix_expr_with_atom;
 			work_postfix_expr++;
 		} else if (*infix_expr_with_atom == '(') {
-			*stack = '(';
-			stack++;
+			if (!is_full_oper_stack(&stack)) {
+				in_oper_stack(&stack, '(');
+			} else {
+				log_error("operator stack full\n");
+				exit(0);
+			}
 		} else if (*infix_expr_with_atom == '*' || *infix_expr_with_atom == '?') {
 			*work_postfix_expr = *infix_expr_with_atom;
 			work_postfix_expr++;
@@ -130,8 +182,7 @@ static int trans_infix_to_postfix_expression(unsigned char* postfix_expr, unsign
 	}
 	log_debug("post fix expression %s\n", postfix_expr);
 
-	l_free(stack);
-	l_free(infix_expr_with_atom);
+	l_free(head_infix_expr_with_atom);
 
 	return len_with_atom;
 }
