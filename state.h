@@ -52,8 +52,9 @@ typedef struct _frage_stack {
 	int len;
 }frage_stack;
 
-void in_stack(frage_stack* stack, frage* in_frage_item);
-void out_stack(frage_stack* stack, frage* out_frage_item);
+void init_frage_stack(frage_stack* stack);
+void in_frage_stack(frage_stack* stack, frage* in_frage_item);
+void out_frage_stack(frage_stack* stack, frage* out_frage_item);
 	
 state* create_state(char* letter, state* out1, state* out2);
 void destory_state(state* state_destroy);

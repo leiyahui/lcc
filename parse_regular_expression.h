@@ -2,8 +2,9 @@
 #define _PARSE_REGULAR_EXPRESSION_H
 #include "lcc.h"
 #define MAX_OPERATOR_NUM 30
+
 typedef struct _operator_stack {
-	char operator[MAX_OPERATOR_NUM];
+	char operators[MAX_OPERATOR_NUM];
 	int num;
 }operator_stack;
 

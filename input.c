@@ -15,14 +15,14 @@ void loadfile(char* file_name, input_file* file)
 	}
 	file->h_filemapping = handle_file_mapping;
 
-	file->base = (unsigned char*)MapViewOfFile(handle_file_mapping, FILE_MAP_WRITE, 0, 0, 0);
-	if (file->base == NULL) {
+	file->cursor = file->base = (unsigned char*)MapViewOfFile(handle_file_mapping, FILE_MAP_WRITE, 0, 0, 0);
+	if (file->cursor == NULL) {
 		log_error("map file fail\n");
 	}
 
 	file->file_name = file_name;
 	file->line = 1;
-	file->cursor[file->size] = END_OF_FILE;
+	file->base[file->size] = END_OF_FILE;
 }
 
 void unloadfile(input_file* file)
@@ -36,21 +36,29 @@ void unloadfile(input_file* file)
 
 unsigned char* get_next_line(input_file* file)
 {
-	while (*(file->base) != '\n' && *(file->base) != END_OF_FILE) {
-		file->base++;
+	while (*(file->cursor) != '\n' && *(file->cursor) != END_OF_FILE) {
+		file->cursor++;
 	}
 
-	if (*(file->base) == END_OF_FILE) {
+	if (*(file->cursor) == END_OF_FILE) {
 		return NULL;
 	}
 
 	file->line++;
-	file->base++;
-	return file->base;
+	file->cursor++;
+	return file->cursor;
 }
 
 unsigned char* get_next_char(input_file* file)
 {
-	file->base++;
-	return file->base;
+	file->cursor++;
+	return file->cursor;
 }
+
+//void main()
+//{
+//	input_file file;
+//	loadfile("C:\\lex.txt", &file);
+//	parse_regular_expression(&file);
+//}
+//

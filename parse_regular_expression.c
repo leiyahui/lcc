@@ -4,7 +4,7 @@
 
 void init_expr_stack(operator_stack* stack)
 {
-	memset(stack->operator, 0, MAX_OPERATOR_NUM);
+	memset(stack->operators, 0, MAX_OPERATOR_NUM);
 	stack->num = 0;
 }
 
@@ -26,19 +26,19 @@ BOOL is_full_oper_stack(operator_stack* stack)
 
 void in_oper_stack(operator_stack* stack, char op)
 {
-	stack->operator[stack->num] = op;
+	stack->operators[stack->num] = op;
 	stack->num++;
 }
 
 char out_oper_stack(operator_stack* stack)
 {
 	stack->num--;
-	return stack->operator[stack->num];
+	return stack->operators[stack->num];
 }
 
 char get_oper_stack(operator_stack* stack)
 {
-	return stack->operator[stack->num - 1];
+	return stack->operators[stack->num - 1];
 }
 
 static int get_token(unsigned char* current_cursor)
@@ -74,34 +74,31 @@ static BOOL op_precede_cmp(unsigned char op1, unsigned char op2)
 
 void retrieve_low_precedence_letter(operator_stack* stack,  unsigned char** postfix_expr, unsigned char* op)
 {
-	char operator;
+	char c_operator;
+	int j;
 	if (*op == ')') {
-		operator = out_oper_stack(stack);
-		while (operator != '(') {
-			**postfix_expr = operator;
-			*postfix_expr++;
-			operator = out_oper_stack(stack);
+		c_operator = out_oper_stack(stack);
+		while (c_operator != '(') {
+			**postfix_expr = c_operator;
+			(*postfix_expr)++;
+			c_operator = out_oper_stack(stack);
 		}
 	} else {
 		if (!is_empty_oper_stack(stack)) {
-			operator = get_oper_stack(stack);
+			c_operator = get_oper_stack(stack);
 
-			while (op_precede_cmp(operator, *op)) {
+			while (op_precede_cmp(c_operator, *op)) {
 				out_oper_stack(stack);
-				**postfix_expr = operator;
-				*postfix_expr++;
+				**postfix_expr = c_operator;
+				(*postfix_expr)++;
 				if (!is_empty_oper_stack(stack)) {
-					operator = get_oper_stack(stack);
+					c_operator = get_oper_stack(stack);
 				} else {
 					break;
 				}
 			}
 		}
 		in_oper_stack(stack, *op);
-		for (int j = 0; j < stack->num; j++) {
-			log_debug("%c, ", stack->operator[j]);
-		}
-		log_debug("\n");
 	}
 }
 
@@ -151,13 +148,13 @@ static int trans_infix_to_postfix_expression(unsigned char* postfix_expr, unsign
 {
 	operator_stack stack;
 	unsigned char *head_infix_expr_with_atom, *infix_expr_with_atom, *work_postfix_expr;
-	int i, len_with_atom;
+	int i, len_with_atom, postfix_len_with_atom;
 
 	init_expr_stack(&stack);
 	work_postfix_expr = postfix_expr;
 
 	head_infix_expr_with_atom = infix_expr_with_atom = (unsigned char*)l_malloc(len * 2);
-	len_with_atom = add_atom_to_infix_expr(infix_expr_with_atom, infix_expr, len);
+	postfix_len_with_atom = len_with_atom = add_atom_to_infix_expr(infix_expr_with_atom, infix_expr, len);
 	log_debug("expression with atom %s\n", infix_expr_with_atom);
 
 	for (i = 0; i < len_with_atom; i++) {
@@ -165,6 +162,7 @@ static int trans_infix_to_postfix_expression(unsigned char* postfix_expr, unsign
 			*work_postfix_expr = *infix_expr_with_atom;
 			work_postfix_expr++;
 		} else if (*infix_expr_with_atom == '(') {
+			postfix_len_with_atom -= 2;
 			if (!is_full_oper_stack(&stack)) {
 				in_oper_stack(&stack, '(');
 			} else {
@@ -180,20 +178,16 @@ static int trans_infix_to_postfix_expression(unsigned char* postfix_expr, unsign
 
 		infix_expr_with_atom++;
 	}
+	while (!is_empty_oper_stack(&stack)) {
+		*work_postfix_expr = out_oper_stack(&stack);
+		work_postfix_expr++;
+	}
+	postfix_expr[postfix_len_with_atom - 1] = '\0';
 	log_debug("post fix expression %s\n", postfix_expr);
 
 	l_free(head_infix_expr_with_atom);
 
-	return len_with_atom;
-}
-
-void main()
-{
-	char* infix_expression = "abc(a|b)d*";
-	char* pos_fix_expression = (char*)l_malloc(30);
-	init_logfile_fd(5);
-	trans_infix_to_postfix_expression(pos_fix_expression, infix_expression, 10);
-	printf("postfix expression is: %s\n", pos_fix_expression);
+	return postfix_len_with_atom;
 }
 
 void parse_one_postfix_regular_expression(int token, unsigned char* regular_expression, int length)
@@ -201,6 +195,7 @@ void parse_one_postfix_regular_expression(int token, unsigned char* regular_expr
 	int i;
 	char letter;
 	frage_stack stack;
+	init_frage_stack(&stack);
 	for (i = 0; i < length; i++) {
 		letter = regular_expression[i];
 
@@ -219,7 +214,7 @@ void parse_one_postfix_regular_expression(int token, unsigned char* regular_expr
 
 void parse_regular_expression(input_file* file)
 {
-	int token, length;
+	int token, length, length_with_atom;
 	unsigned char* postfix_expr;			//need to malloc memory
 	unsigned char* regular_expression;
 
@@ -230,9 +225,19 @@ void parse_regular_expression(input_file* file)
 		file->cursor++;
 		length = get_regular_expression(file->cursor, &regular_expression);
 
-		trans_infix_to_postfix_expression(postfix_expr, regular_expression, length);
+		length_with_atom = trans_infix_to_postfix_expression(postfix_expr, regular_expression, length);
 
-		parse_one_postfix_regular_expression(token, postfix_expr, length);
+		parse_one_postfix_regular_expression(token, postfix_expr, length_with_atom);
 	} while(get_next_line(file) != NULL);
 }
 
+void main()
+{
+	char* infix_expression = "a(a|b)d*";
+	char* pos_fix_expression = (char*)l_malloc(30);
+	int length_with_atom;
+	init_logfile_fd(5);
+	length_with_atom = trans_infix_to_postfix_expression(pos_fix_expression, infix_expression, 8);
+	parse_one_postfix_regular_expression(1, pos_fix_expression, length_with_atom);
+	printf("postfix expression is: %s\n", pos_fix_expression);
+}
