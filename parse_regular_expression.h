@@ -21,9 +21,9 @@ char out_oper_stack(operator_stack* stack);
 char get_oper_stack(operator_stack* stack);
 
 
-void parse_regular_expression(input_file* file);
+state_list* parse_regular_expression(input_file* file);
 
-void parse_one_postfix_regular_expression(int token, unsigned char* regular_expression, int length);
+state* parse_one_postfix_regular_expression(int token, unsigned char* regular_expression, int length);
 
 
 #endif

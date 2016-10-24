@@ -107,3 +107,11 @@ void star_frage(frage_stack* stack)
 
 	in_frage_stack(stack, &frage_star);
 }
+
+void in_start_state_array(state_list* start_state, state* in_state)
+{
+	int number = start_state->num;;
+
+	start_state->state_array[number] = in_state;
+	(start_state->num)++;
+}

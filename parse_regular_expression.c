@@ -190,11 +190,12 @@ static int trans_infix_to_postfix_expression(unsigned char* postfix_expr, unsign
 	return postfix_len_with_atom;
 }
 
-void parse_one_postfix_regular_expression(int token, unsigned char* regular_expression, int length)
+state* parse_one_postfix_regular_expression(int token, unsigned char* regular_expression, int length)
 {
 	int i;
 	char letter;
 	frage_stack stack;
+	frage frage;
 	init_frage_stack(&stack);
 	for (i = 0; i < length; i++) {
 		letter = regular_expression[i];
@@ -210,15 +211,21 @@ void parse_one_postfix_regular_expression(int token, unsigned char* regular_expr
 			create_frage(&stack, letter);
 		}
 	}
+	out_frage_stack(&stack, &frage);
+	return frage.start;
+	
 }
 
-void parse_regular_expression(input_file* file)
+state_list* parse_regular_expression(input_file* file)
 {
 	int token, length, length_with_atom;
 	unsigned char* postfix_expr;			//need to malloc memory
 	unsigned char* regular_expression;
+	state* s_state;
+	state_list* start_state;
 
 	postfix_expr = (unsigned char*)l_malloc(MAX_POST_FIX_EXPR_LEN);
+	start_state = (state_list*)l_calloc(sizeof(state_list));
 
 	do {
 		token = get_token(file->cursor);
@@ -228,7 +235,10 @@ void parse_regular_expression(input_file* file)
 		length_with_atom = trans_infix_to_postfix_expression(postfix_expr, regular_expression, length);
 
 		parse_one_postfix_regular_expression(token, postfix_expr, length_with_atom);
+		in_start_state_array(start_state, s_state);
 	} while(get_next_line(file) != NULL);
+	
+	return start_state;
 }
 
 void main()
