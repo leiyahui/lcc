@@ -38,8 +38,5 @@ void concate_frage(frage_stack* stack);
 void union_frage(frage_stack* stack);
 void star_frage(frage_stack* stack);
 
-
-void in_start_state_array(state_list* state_array, state* in_state);
-
 #endif
 

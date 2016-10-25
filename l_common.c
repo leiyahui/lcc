@@ -7,17 +7,29 @@ void* l_malloc(int size){
 	ptr = malloc(size);
 	if (ptr == NULL) {
 		log_error("malloc memory exhausted!\n");
+		exit(0);
 	}
 }
 
-void* l_calloc(int size) {
+void* l_calloc(int count, int size) {
 	void *ptr;
 	if (size <= 0) {
 		return NULL;
 	}
-	ptr = malloc(size);
+	ptr = calloc(count, size);
 	if(ptr == NULL) {
 		log_error("calloc memory exhausted!\n");
+		exit(0);
+	}
+}
+
+void l_memcpy(void* dest_addr, void* src_addr, int len)
+{
+	if (src_addr != NULL && dest_addr != NULL && len >= 0) {
+		memcpy(dest_addr, src_addr, len);
+	} else {
+		log_error("memcpy error\n");
+		exit(0);
 	}
 }
 

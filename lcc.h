@@ -22,4 +22,5 @@
 #include "state.h"
 #include "input.h"
 #include "parse_regular_expression.h"
+#include "simulation_nfa.h"
 #endif

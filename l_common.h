@@ -6,7 +6,8 @@
 #define FALSE 0
 
 void* l_malloc(int size);
-void* l_calloc(int size);
+void* l_calloc(int count, int size);
+void l_memcpy(void* dest_addr, void* src_addr, int len);
 void l_free(void* ptr);
 
 unsigned char oa_str_case_equal(const char *str1, const char *str2);

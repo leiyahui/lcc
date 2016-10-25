@@ -182,7 +182,7 @@ static int trans_infix_to_postfix_expression(unsigned char* postfix_expr, unsign
 		*work_postfix_expr = out_oper_stack(&stack);
 		work_postfix_expr++;
 	}
-	postfix_expr[postfix_len_with_atom - 1] = '\0';
+	postfix_expr[postfix_len_with_atom] = '\0';
 	log_debug("post fix expression %s\n", postfix_expr);
 
 	l_free(head_infix_expr_with_atom);
@@ -203,15 +203,19 @@ state* parse_one_postfix_regular_expression(int token, unsigned char* regular_ex
 		switch (letter) {
 		case '.':
 			concate_frage(&stack);
+			break;
 		case '|':
 			union_frage(&stack);
+			break;
 		case '*':
 			star_frage(&stack);
+			break;
 		default:
 			create_frage(&stack, letter);
 		}
 	}
 	out_frage_stack(&stack, &frage);
+
 	return frage.start;
 
 }
@@ -225,7 +229,7 @@ state_list* parse_regular_expression(input_file* file)
 	state_list* start_state;
 
 	postfix_expr = (unsigned char*)l_malloc(MAX_POST_FIX_EXPR_LEN);
-	start_state = (state_list*)l_calloc(sizeof(state_list));
+	start_state = (state_list*)l_calloc(1, sizeof(state_list));
 
 	do {
 		token = get_token(file->cursor);
@@ -234,8 +238,8 @@ state_list* parse_regular_expression(input_file* file)
 
 		length_with_atom = trans_infix_to_postfix_expression(postfix_expr, regular_expression, length);
 
-		parse_one_postfix_regular_expression(token, postfix_expr, length_with_atom);
-		in_start_state_array(start_state, s_state);
+		s_state = parse_one_postfix_regular_expression(token, postfix_expr, length_with_atom);
+		add_state_to_list(start_state, s_state);
 	} while(get_next_line(file) != NULL);
 
 	return start_state;
@@ -244,10 +248,22 @@ state_list* parse_regular_expression(input_file* file)
 void main()
 {
 	char* infix_expression = "a(a|b)d*";
-	char* pos_fix_expression = (char*)l_malloc(30);
+	unsigned char* pos_fix_expression = (unsigned char*)l_malloc(30);
 	int length_with_atom;
+	state_list* start_state;
+	state* s_state;
+
 	init_logfile_fd(5);
 	length_with_atom = trans_infix_to_postfix_expression(pos_fix_expression, infix_expression, 8);
-	parse_one_postfix_regular_expression(1, pos_fix_expression, length_with_atom);
+
+	start_state = (state_list*)l_calloc(1, sizeof(state_list));
+
+	s_state = parse_one_postfix_regular_expression(1, pos_fix_expression, length_with_atom);
+
+	add_state_to_list(start_state, s_state);
+
+	simulation_nfa(start_state, "hello", 6);
+
+
 	printf("postfix expression is: %s\n", pos_fix_expression);
 }

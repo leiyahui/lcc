@@ -57,6 +57,7 @@ void create_frage(frage_stack* stack, char letter)
 	stack->frage_list[len].start = state_new;
 	stack->frage_list[len].out = state_new;
 	stack->len++;
+	log_debug("create frage and frage count is :%d\n", stack->len);
 }
 
 void concate_frage(frage_stack* stack)
@@ -68,6 +69,7 @@ void concate_frage(frage_stack* stack)
 	front_frage.out = rear_frage.out;
 
 	in_frage_stack(stack, &front_frage);
+	log_debug("concate frage and frage count is :%d\n", stack->len);
 }
 
 void union_frage(frage_stack* stack)
@@ -88,6 +90,7 @@ void union_frage(frage_stack* stack)
 	frage1.out = out;
 
 	in_frage_stack(stack, &frage1);
+	log_debug("union frage and frage count is :%d\n", stack->len);
 }
 
 void star_frage(frage_stack* stack)
@@ -106,12 +109,5 @@ void star_frage(frage_stack* stack)
 	frage_star.out = out;
 
 	in_frage_stack(stack, &frage_star);
-}
-
-void in_start_state_array(state_list* start_state, state* in_state)
-{
-	int number = start_state->num;;
-
-	start_state->state_array[number] = in_state;
-	(start_state->num)++;
+	log_debug("star frage and frage count is :%d\n", stack->len);
 }
