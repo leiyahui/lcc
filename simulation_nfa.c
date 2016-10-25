@@ -7,57 +7,49 @@ int simulation_nfa(state_list* start_state, char* letter, int length)
 	list_1 = start_state;
 
 	for (i = 0; i < length; i++) {
-			move_step(list_1, list_2, *(letter + i));
+			get_next_list(list_1, list_2, *(letter + i));
+			list_1 = list_2;
 	}
 }
 
-void move_step(state_list* start_list, state_list* end_list, char letter)
+void make_move(state* dest_state, state_list* end_list, char letter)
+{
+	if (dest_state != NULL) {
+		if (dest_state->letter == letter) {
+			if (!is_in_state_list(end_list, dest_state)) {
+				add_state_to_list(end_list, dest_state);
+			}
+		}
+	}
+}
+
+void get_next_list(state_list* start_list, state_list* end_list, char letter)
 {
 	int i, j;
 	state *start, *end;
 
 	for (i = 0; i < start_list->num; i++) {
 		start = start_list->state_array[i];
-		if (start->out1 != NULL) {
-			end = start->out1;
-			if (end->letter == letter) {
-				in_start_state_array(end_list, end);
-			}
-			if (start->out2 != NULL) {
-				end = start->out1;
-				if (end->letter == letter) {
-					in_start_state_array(end_list, end);
-				}
-			}
-		}
+		end = start->out1;
+		make_move(end, end_list, letter);
+		closure_state(end_list, end);
+		end = start->out2;
+		make_move(end, end_list, letter);
+		closure_state(end_list, end);
 	}
 }
 
-void closure_state(state_list* list)
+
+void closure_state(state_list* list, state* start)
 {
 	int i, j;
-	state* s, *out_s;
-	for (i = 0; i < list->num; i++) {
-		s = list->state_array[i];
-		out_s = s->out1;
-		if (out_s != NULL) {
-			if (out_s->letter == CLOSURE) {
-				if (!is_in_state_list(list, out_s)) {
-					add_state_to_list(list, out_s);
-					closure_state(list, out_s);
-				}
-			}
-			out_s = s->out2;
-			if (out_s != NULL) {
-				if (out_s->letter == CLOSURE) {
-					if (!is_in_state_list(list, out_s)) {
-						add_state_to_list(list, out_s);
-						closure_state(list, out_s);
-					}
-				}
-			}
-		}
-	}
+	state *end;
+	end = start->out1;
+	make_move(end, list, CLOSURE);
+	closure_state(list, end);
+	end = start->out2;
+	make_move(end, list, CLOSURE);
+	closure_state(list, end);
 }
 
 BOOL is_in_state_list(state_list* list, state* s)

@@ -29,8 +29,8 @@ typedef struct _state_list {
 void init_frage_stack(frage_stack* stack);
 void in_frage_stack(frage_stack* stack, frage* in_frage_item);
 void out_frage_stack(frage_stack* stack, frage* out_frage_item);
-	
-state* create_state(char* letter, state* out1, state* out2);
+
+state* create_state(char letter, state* out1, state* out2);
 void destory_state(state* state_destroy);
 
 void create_frage(frage_stack* stack, char letter);
