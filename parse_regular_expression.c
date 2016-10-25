@@ -213,7 +213,7 @@ state* parse_one_postfix_regular_expression(int token, unsigned char* regular_ex
 	}
 	out_frage_stack(&stack, &frage);
 	return frage.start;
-	
+
 }
 
 state_list* parse_regular_expression(input_file* file)
@@ -237,7 +237,7 @@ state_list* parse_regular_expression(input_file* file)
 		parse_one_postfix_regular_expression(token, postfix_expr, length_with_atom);
 		in_start_state_array(start_state, s_state);
 	} while(get_next_line(file) != NULL);
-	
+
 	return start_state;
 }
 
