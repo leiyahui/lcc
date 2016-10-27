@@ -123,9 +123,12 @@ int add_atom_to_infix_expr(unsigned char* infix_expr_with_atom, unsigned char* i
 		} else {
 			*work_infix_expr_with_atom = *work_infix_expr;
 			work_infix_expr_with_atom++;
-			*work_infix_expr_with_atom = '.';
-			work_infix_expr_with_atom++;
-			len_with_atom += 2;
+			len_with_atom++;
+			if (i != length - 1) {					//havn't reach end
+				*work_infix_expr_with_atom = '.';
+				work_infix_expr_with_atom++;
+				len_with_atom++;
+			}
 		}
 
 		work_infix_expr++;
@@ -153,7 +156,7 @@ static int trans_infix_to_postfix_expression(unsigned char* postfix_expr, unsign
 	init_expr_stack(&stack);
 	work_postfix_expr = postfix_expr;
 
-	head_infix_expr_with_atom = infix_expr_with_atom = (unsigned char*)l_malloc(len * 2);
+	head_infix_expr_with_atom = infix_expr_with_atom = (unsigned char*)l_malloc(len * 2 + 1);
 	postfix_len_with_atom = len_with_atom = add_atom_to_infix_expr(infix_expr_with_atom, infix_expr, len);
 	log_debug("expression with atom %s\n", infix_expr_with_atom);
 
@@ -245,11 +248,26 @@ state_list* parse_regular_expression(input_file* file)
 	return start_state;
 }
 
+void print_nfa(state* start_state, int *count)
+{
+	if (start_state->out1 != NULL) {
+		(*count)++;
+		log_debug("state count is :%d, letter is :%c", *count, start_state->letter);
+		print_nfa(start_state->out1, count);
+	}
+	if (start_state->out2 != NULL) {
+		(*count)++;
+		log_debug("state count is :%d, letter is :%c", *count, start_state->letter);
+		print_nfa(start_state->out2, count);
+	}
+
+}
+
 void main()
 {
-	char* infix_expression = "a(a|b)d*";
+	char* infix_expression = "abcdefgh";
 	unsigned char* pos_fix_expression = (unsigned char*)l_malloc(30);
-	int length_with_atom;
+	int length_with_atom, count;
 	state_list* start_state;
 	state* s_state;
 
@@ -260,9 +278,13 @@ void main()
 
 	s_state = parse_one_postfix_regular_expression(1, pos_fix_expression, length_with_atom);
 
+	count = 0;
+
+	print_nfa(s_state, &count);
+
 	add_state_to_list(start_state, s_state);
 
-	simulation_nfa(start_state, "hello", 6);
+	simulation_nfa(start_state, "abcdefgh", 6);
 
 
 	printf("postfix expression is: %s\n", pos_fix_expression);

@@ -63,8 +63,8 @@ void create_frage(frage_stack* stack, char letter)
 void concate_frage(frage_stack* stack)
 {
 	frage front_frage, rear_frage;
-	out_frage_stack(stack, &front_frage);
 	out_frage_stack(stack, &rear_frage);
+	out_frage_stack(stack, &front_frage);
 	(front_frage.out)->out1 = rear_frage.start;
 	front_frage.out = rear_frage.out;
 
@@ -80,7 +80,7 @@ void union_frage(frage_stack* stack)
 	out_frage_stack(stack, &frage1);
 	out_frage_stack(stack, &frage2);
 
-	start = create_state(CLOSURE, frage1.start, frage2.start); 
+	start = create_state(CLOSURE, frage1.start, frage2.start);
 	out = create_state(CLOSURE, (frage1.out)->out1, (frage2.out)->out1);
 
 	(frage1.out)->out1 = out;
