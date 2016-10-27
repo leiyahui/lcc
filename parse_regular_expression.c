@@ -115,8 +115,9 @@ int add_atom_to_infix_expr(unsigned char* infix_expr_with_atom, unsigned char* i
 		letter_l = *work_infix_expr;
 		letter_r = *(work_infix_expr + 1);
 
-		if (letter_l == '|' || letter_l == '*' || letter_l == '?' || letter_r == '|'
-			 || letter_r == '*' || letter_r == '?' || letter_l == '(' || letter_r == ')') {
+		if (letter_l == '|' || letter_r == '|' || letter_r == '*' 
+			|| letter_r == '?' || letter_l == '(' || letter_r == ')') {
+
 			*work_infix_expr_with_atom = *work_infix_expr;
 			work_infix_expr_with_atom++;
 			len_with_atom++;
@@ -280,11 +281,11 @@ void main()
 
 	count = 0;
 
-	print_nfa(s_state, &count);
+	//print_nfa(s_state, &count);
 
 	add_state_to_list(start_state, s_state);
 
-	simulation_nfa(start_state, "abcdefffgh", 8);
+	simulation_nfa(start_state, "abcdefffgh", 10);
 
 
 	printf("postfix expression is: %s\n", pos_fix_expression);
