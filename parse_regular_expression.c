@@ -265,7 +265,7 @@ void print_nfa(state* start_state, int *count)
 
 void main()
 {
-	char* infix_expression = "abcdefgh";
+	char* infix_expression = "abcdef*gh";
 	unsigned char* pos_fix_expression = (unsigned char*)l_malloc(30);
 	int length_with_atom, count;
 	state_list* start_state;
@@ -284,7 +284,7 @@ void main()
 
 	add_state_to_list(start_state, s_state);
 
-	simulation_nfa(start_state, "abcdefgh", 6);
+	simulation_nfa(start_state, "abcdefffgh", 8);
 
 
 	printf("postfix expression is: %s\n", pos_fix_expression);
