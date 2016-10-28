@@ -115,7 +115,7 @@ int add_atom_to_infix_expr(unsigned char* infix_expr_with_atom, unsigned char* i
 		letter_l = *work_infix_expr;
 		letter_r = *(work_infix_expr + 1);
 
-		if (letter_l == '|' || letter_r == '|' || letter_r == '*' 
+		if (letter_l == '|' || letter_r == '|' || letter_r == '*'
 			|| letter_r == '?' || letter_l == '(' || letter_r == ')') {
 
 			*work_infix_expr_with_atom = *work_infix_expr;
@@ -266,14 +266,14 @@ void print_nfa(state* start_state, int *count)
 
 void main()
 {
-	char* infix_expression = "abcdef*gh";
+	char* infix_expression = "ab*c";
 	unsigned char* pos_fix_expression = (unsigned char*)l_malloc(30);
 	int length_with_atom, count;
 	state_list* start_state;
 	state* s_state;
 
 	init_logfile_fd(5);
-	length_with_atom = trans_infix_to_postfix_expression(pos_fix_expression, infix_expression, 8);
+	length_with_atom = trans_infix_to_postfix_expression(pos_fix_expression, infix_expression, 4);
 
 	start_state = (state_list*)l_calloc(1, sizeof(state_list));
 
@@ -285,7 +285,7 @@ void main()
 
 	add_state_to_list(start_state, s_state);
 
-	simulation_nfa(start_state, "abcdefffgh", 10);
+	simulation_nfa(start_state, "abbbebbc", 8);
 
 
 	printf("postfix expression is: %s\n", pos_fix_expression);

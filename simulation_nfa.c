@@ -64,18 +64,21 @@ void closure_state(state_list* list, state* start)
 	}
 }
 
-void closure_list(state_list* list_in, state_list* list_out)
+void closure_list(state_list* list_in)
 {
 	int i;
 
 	for (i = 0; i < list_in->num; i++) {
-		closure_state(list_out, list_in->state_array[i]);
+		closure_state(list_in, list_in->state_array[i]);
 	}
+
+
 }
 
 void swap_list_addr(state_list** list_1, state_list** list2)
 {
 	state_list* list_temp;
+	memset(*list_1, 0, sizeof(state_list));
 	list_temp = *list_1;
 	*list_1 = *list2;
 	*list2 = list_temp;
@@ -90,8 +93,6 @@ int simulation_nfa(state_list* start_list, char* letter, int length)
 	list_2 = (state_list *)calloc(1, sizeof(state_list));
 
 	l_memcpy(list_1, start_list, sizeof(state_list));
-	closure_list(list_1, list_2);
-	swap_list_addr(&list_1, &list_2);
 
 	for (i = 0; i < length; i++) {
 		get_next_list(list_1, list_2, *(letter + i));

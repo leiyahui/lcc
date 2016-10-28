@@ -1,12 +1,20 @@
 #ifndef _STATE_H
 #define _STATE_H
 
-#define CLOSURE			256
+#define CLOSURE			255
 #define FRAGE_STACK_LEN 10
 #define	START_STATE_NUM	30
 
+
+#ifdef _DEBUG
+extern int state_count;
+#endif
+
 typedef struct _state {
 	char letter;
+#ifdef _DEBUG
+	int count;
+#endif
 	struct _state* out1;
 	struct _state* out2;
 }state;
