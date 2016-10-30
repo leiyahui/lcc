@@ -100,7 +100,7 @@ int simulation_nfa(state_list* start_list, char* letter, int length)
 	int i, j;
 	state_list *list_1, *list_2;
 	state** state_array;
-	int token;
+	int token = 0;
 
 	list_1 = (state_list *)calloc(1, sizeof(state_list));
 	list_2 = (state_list *)calloc(1, sizeof(state_list));

@@ -58,7 +58,8 @@ static int get_regular_expression(unsigned char* current_cursor, unsigned char**
 
 	*regular_expression = current_cursor;
 
-	while (*current_cursor != ' ' && *current_cursor != '\t' && *current_cursor != '\n') {
+	while (*current_cursor != ' ' && *current_cursor != '\t' && *current_cursor != '\n' && *current_cursor != '\r') {
+		current_cursor++;
 		length++;
 	}
 	return length;
@@ -233,10 +234,10 @@ state_list* parse_regular_expression(input_file* file)
 	unsigned char* postfix_expr;			//need to malloc memory
 	unsigned char* regular_expression;
 	state* s_state;
-	state_list* start_state;
+	state_list* start_state_list;
 
 	postfix_expr = (unsigned char*)l_malloc(MAX_POST_FIX_EXPR_LEN);
-	start_state = (state_list*)l_calloc(1, sizeof(state_list));
+	start_state_list = (state_list*)l_calloc(1, sizeof(state_list));
 
 	do {
 		token = get_token(file->cursor);
@@ -246,32 +247,32 @@ state_list* parse_regular_expression(input_file* file)
 		length_with_atom = trans_infix_to_postfix_expression(postfix_expr, regular_expression, length);
 
 		s_state = parse_one_postfix_regular_expression(token, postfix_expr, length_with_atom);
-		add_state_to_list(start_state, s_state);
+		add_state_to_list(start_state_list, s_state);
 	} while(get_next_line(file) != NULL);
 
-	return start_state;
+	return start_state_list;
 }
 
-void main()
-{
-	char* infix_expression = "a*feb*c(e|f)g";
-	unsigned char* pos_fix_expression = (unsigned char*)l_malloc(30);
-	int length_with_atom;
-	state_list* start_state;
-	state* s_state;
-
-	init_logfile_fd(5);
-	length_with_atom = trans_infix_to_postfix_expression(pos_fix_expression, infix_expression, 13);
-
-	start_state = (state_list*)l_calloc(1, sizeof(state_list));
-
-	s_state = parse_one_postfix_regular_expression(1, pos_fix_expression, length_with_atom);
-
-
-	add_state_to_list(start_state, s_state);
-
-	simulation_nfa(start_state, "aaafebbbbbcfg", 13);
-
-
-	printf("postfix expression is: %s\n", pos_fix_expression);
-}
+//void main()
+//{
+//	char* infix_expression = "a*feb*c(e|f)g";
+//	unsigned char* pos_fix_expression = (unsigned char*)l_malloc(30);
+//	int length_with_atom;
+//	state_list* start_state;
+//	state* s_state;
+//
+//	init_logfile_fd(5);
+//	length_with_atom = trans_infix_to_postfix_expression(pos_fix_expression, infix_expression, 13);
+//
+//	start_state = (state_list*)l_calloc(1, sizeof(state_list));
+//
+//	s_state = parse_one_postfix_regular_expression(1, pos_fix_expression, length_with_atom);
+//
+//
+//	add_state_to_list(start_state, s_state);
+//
+//	simulation_nfa(start_state, "aaafebbbbbcfg", 13);
+//
+//
+//	printf("postfix expression is: %s\n", pos_fix_expression);
+//}

@@ -55,10 +55,15 @@ unsigned char* get_next_char(input_file* file)
 	return file->cursor;
 }
 
-//void main()
-//{
-//	input_file file;
-//	loadfile("C:\\lex.txt", &file);
-//	parse_regular_expression(&file);
-//}
-//
+void main()
+{
+	input_file file;
+	state_list* start_list;
+
+	init_logfile_fd(5);
+	loadfile("C:\\lex.txt", &file);
+	start_list = parse_regular_expression(&file);
+	simulation_nfa(start_list, "higk", 4);
+
+}
+
