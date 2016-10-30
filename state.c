@@ -1,9 +1,6 @@
 /*dfa's or nfa's state*/
 #include "lcc.h"
 
-#ifdef _DEBUG
-int state_count;
-#endif
 
 void init_frage_stack(frage_stack* stack)
 {
@@ -43,10 +40,16 @@ state* create_state(char letter, state* out1, state* out2)
 	state_create->out1 = out1;
 	state_create->out2 = out2;
 
-#ifdef _DEBUG
-	state_count++;
-	state_create->count = state_count;
-#endif
+	return state_create;
+}
+
+accepting_state* create_accepting_state(char token)
+{
+	accepting_state* state_create;
+
+	state_create = (accepting_state*)l_malloc(sizeof(accepting_state));
+	(state_create->accpeting_state).letter = ACCEPTING;
+	state_create->token = token;
 
 	return state_create;
 }

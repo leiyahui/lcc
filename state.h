@@ -1,23 +1,23 @@
 #ifndef _STATE_H
 #define _STATE_H
 
-#define CLOSURE			255
+#define CLOSURE			254
+#define ACCEPTING		255
 #define FRAGE_STACK_LEN 10
 #define	START_STATE_NUM	30
 
 
-#ifdef _DEBUG
-extern int state_count;
-#endif
-
 typedef struct _state {
 	char letter;
-#ifdef _DEBUG
-	int count;
-#endif
+	int list_id;		//used in simulation nfa
 	struct _state* out1;
 	struct _state* out2;
 }state;
+
+typedef struct _accepting_state {
+	state accpeting_state;
+	int token;
+}accepting_state;
 
 typedef struct _frage {		//one frag contains servel state, it's operand of opertor
 	state* start;
@@ -39,6 +39,7 @@ void in_frage_stack(frage_stack* stack, frage* in_frage_item);
 void out_frage_stack(frage_stack* stack, frage* out_frage_item);
 
 state* create_state(char letter, state* out1, state* out2);
+accepting_state* create_accepting_state(char token);
 void destory_state(state* state_destroy);
 
 void create_frage(frage_stack* stack, char letter);

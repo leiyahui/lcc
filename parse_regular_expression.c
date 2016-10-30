@@ -200,6 +200,7 @@ state* parse_one_postfix_regular_expression(int token, unsigned char* regular_ex
 	char letter;
 	frage_stack stack;
 	frage frage;
+	state* accept_state;
 	init_frage_stack(&stack);
 	for (i = 0; i < length; i++) {
 		letter = regular_expression[i];
@@ -219,6 +220,8 @@ state* parse_one_postfix_regular_expression(int token, unsigned char* regular_ex
 		}
 	}
 	out_frage_stack(&stack, &frage);
+	accept_state = (state*)create_accepting_state(token);
+	(frage.out)->out1 = accept_state;
 
 	return frage.start;
 
@@ -249,43 +252,25 @@ state_list* parse_regular_expression(input_file* file)
 	return start_state;
 }
 
-void print_nfa(state* start_state, int *count)
-{
-	if (start_state->out1 != NULL) {
-		(*count)++;
-		log_debug("state count is :%d, letter is :%c", *count, start_state->letter);
-		print_nfa(start_state->out1, count);
-	}
-	if (start_state->out2 != NULL) {
-		(*count)++;
-		log_debug("state count is :%d, letter is :%c", *count, start_state->letter);
-		print_nfa(start_state->out2, count);
-	}
-
-}
-
 void main()
 {
-	char* infix_expression = "ab*c";
+	char* infix_expression = "a*feb*c(e|f)g";
 	unsigned char* pos_fix_expression = (unsigned char*)l_malloc(30);
-	int length_with_atom, count;
+	int length_with_atom;
 	state_list* start_state;
 	state* s_state;
 
 	init_logfile_fd(5);
-	length_with_atom = trans_infix_to_postfix_expression(pos_fix_expression, infix_expression, 4);
+	length_with_atom = trans_infix_to_postfix_expression(pos_fix_expression, infix_expression, 13);
 
 	start_state = (state_list*)l_calloc(1, sizeof(state_list));
 
 	s_state = parse_one_postfix_regular_expression(1, pos_fix_expression, length_with_atom);
 
-	count = 0;
-
-	//print_nfa(s_state, &count);
 
 	add_state_to_list(start_state, s_state);
 
-	simulation_nfa(start_state, "abbbebbc", 8);
+	simulation_nfa(start_state, "aaafebbbbbcfg", 13);
 
 
 	printf("postfix expression is: %s\n", pos_fix_expression);
